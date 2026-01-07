@@ -10,9 +10,9 @@ function App() {
       <MainContent />
 
       <UserProfile 
-        name="Ntokozo" 
-        age="30" 
-        bio="Student learning React and Web development" 
+        name="Alice" 
+        age="25" 
+        bio="Loves hiking and photography" 
       />
 
       <Footer />
