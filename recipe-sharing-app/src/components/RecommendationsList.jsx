@@ -4,17 +4,17 @@ import { Link } from 'react-router-dom';
 
 const RecommendationsList = () => {
   // Get recommendations and favorites from store
-  const recommendations = useRecipeStore((state) => state.getRecommendations());
+  const recommendations = useRecipeStore((state) => state.recommendations);
   const generateRecommendations = useRecipeStore((state) => state.generateRecommendations);
-  const favoritesCount = useRecipeStore((state) => state.favorites.length);
+  const favorites = useRecipeStore((state) => state.favorites);
   
-  // Generate recommendations when component mounts or when favorites change
+  // Generate recommendations only when component mounts or favorites change
   useEffect(() => {
     generateRecommendations();
-  }, [favoritesCount, generateRecommendations]);
+  }, [favorites.length]); // Only depend on favorites length, not the generateRecommendations function
 
   // Don't show if no recommendations
-  if (recommendations.length === 0) {
+  if (!recommendations || recommendations.length === 0) {
     return null;
   }
 
@@ -22,10 +22,10 @@ const RecommendationsList = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>
-          {favoritesCount > 0 ? '✨ Recommended For You' : '🔥 Popular Recipes'}
+          {favorites.length > 0 ? '✨ Recommended For You' : '🔥 Popular Recipes'}
         </h2>
         <p style={styles.subtitle}>
-          {favoritesCount > 0 
+          {favorites.length > 0 
             ? 'Based on your favorite recipes and preferences'
             : 'Try these popular recipes to get started!'}
         </p>
@@ -43,7 +43,7 @@ const RecommendationsList = () => {
             <p style={styles.recipeDescription}>{recipe.description}</p>
             
             <div style={styles.recommendationReason}>
-              {favoritesCount > 0 ? (
+              {favorites.length > 0 ? (
                 <span style={styles.reasonText}>
                   🎯 Matches your interests
                 </span>
@@ -63,7 +63,7 @@ const RecommendationsList = () => {
         ))}
       </div>
       
-      {favoritesCount === 0 && (
+      {favorites.length === 0 && (
         <div style={styles.tipBox}>
           <p style={styles.tipText}>
             <strong>💡 Tip:</strong> Add recipes to your favorites to get personalized recommendations!
