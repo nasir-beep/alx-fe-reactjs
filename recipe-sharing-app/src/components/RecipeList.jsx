@@ -3,6 +3,7 @@ import useRecipeStore from '../stores/recipeStore';
 import DeleteRecipeButton from './DeleteRecipeButton';
 import SearchBar from './SearchBar';
 import AdvancedFilters from './AdvancedFilters';
+import RecommendationsList from './RecommendationsList';
 
 const RecipeList = () => {
   const filteredRecipes = useRecipeStore((state) => state.getFilteredRecipes());
@@ -10,6 +11,8 @@ const RecipeList = () => {
   const selectedCategory = useRecipeStore((state) => state.selectedCategory);
   const selectedDifficulty = useRecipeStore((state) => state.selectedDifficulty);
   const maxPrepTime = useRecipeStore((state) => state.maxPrepTime);
+  const toggleFavorite = useRecipeStore((state) => state.toggleFavorite);
+  const isFavorite = useRecipeStore((state) => state.isFavorite);
   
   const allRecipes = useRecipeStore((state) => state.recipes);
   const totalRecipes = allRecipes.length;
@@ -58,9 +61,13 @@ const RecipeList = () => {
                   <span style={styles.recipeCategory}>{recipe.category}</span>
                   <span style={styles.recipeDifficulty}>{recipe.difficulty}</span>
                 </div>
-                <div style={styles.timeInfo}>
-                  <span style={styles.timeBadge}>⏱️ {recipe.prepTime} min prep</span>
-                </div>
+                <button
+                  onClick={() => toggleFavorite(recipe.id)}
+                  style={isFavorite(recipe.id) ? styles.favoriteButtonActive : styles.favoriteButton}
+                  title={isFavorite(recipe.id) ? "Remove from favorites" : "Add to favorites"}
+                >
+                  {isFavorite(recipe.id) ? '❤️' : '🤍'}
+                </button>
               </div>
               
               <div style={styles.recipeContent}>
@@ -73,6 +80,14 @@ const RecipeList = () => {
                     {recipe.ingredients.slice(0, 3).join(', ')}
                     {recipe.ingredients.length > 3 && '...'}
                   </span>
+                </div>
+                
+                <div style={styles.tagsContainer}>
+                  {recipe.tags?.slice(0, 3).map((tag, index) => (
+                    <span key={index} style={styles.tag}>
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               </div>
               
@@ -89,6 +104,8 @@ const RecipeList = () => {
           ))}
         </div>
       )}
+      
+      <RecommendationsList />
     </div>
   );
 };
@@ -165,23 +182,19 @@ const styles = {
   recipeCard: {
     border: '1px solid #e0e0e0',
     borderRadius: '12px',
-    padding: '20px',
+    padding: '25px',
     backgroundColor: 'white',
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-  },
-  recipeCardHover: {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+    transition: 'all 0.3s ease',
   },
   recipeHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '15px',
+    marginBottom: '20px',
   },
   recipeMeta: {
     display: 'flex',
@@ -191,7 +204,7 @@ const styles = {
   recipeCategory: {
     backgroundColor: '#e3f2fd',
     color: '#1976d2',
-    padding: '4px 12px',
+    padding: '6px 14px',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: '500',
@@ -199,44 +212,62 @@ const styles = {
   recipeDifficulty: {
     backgroundColor: '#f3e5f5',
     color: '#7b1fa2',
-    padding: '4px 12px',
+    padding: '6px 14px',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: '500',
   },
-  timeInfo: {
-    textAlign: 'right',
+  favoriteButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: '24px',
+    cursor: 'pointer',
+    padding: '8px',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    transition: 'all 0.2s ease',
   },
-  timeBadge: {
-    backgroundColor: '#e8f5e9',
-    color: '#2e7d32',
-    padding: '4px 10px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '500',
+  favoriteButtonActive: {
+    background: 'none',
+    border: 'none',
+    fontSize: '24px',
+    cursor: 'pointer',
+    padding: '8px',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffebee',
+    transition: 'all 0.2s ease',
   },
   recipeContent: {
     flex: 1,
-    marginBottom: '20px',
+    marginBottom: '25px',
   },
   recipeTitle: {
     marginTop: 0,
     color: '#333',
     fontSize: '20px',
-    marginBottom: '10px',
+    marginBottom: '15px',
     lineHeight: '1.4',
   },
   recipeDescription: {
     color: '#666',
     fontSize: '14px',
     lineHeight: '1.6',
-    marginBottom: '15px',
-    flex: 1,
+    marginBottom: '20px',
   },
   ingredientsPreview: {
-    marginTop: '15px',
-    paddingTop: '15px',
-    borderTop: '1px solid #eee',
+    marginBottom: '15px',
+    paddingBottom: '15px',
+    borderBottom: '1px solid #eee',
   },
   ingredientsText: {
     display: 'block',
@@ -245,42 +276,46 @@ const styles = {
     marginTop: '5px',
     lineHeight: '1.5',
   },
+  tagsContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginTop: '15px',
+  },
+  tag: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+    padding: '4px 10px',
+    borderRadius: '12px',
+    fontSize: '11px',
+  },
   buttonContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px',
+    gap: '12px',
   },
   viewButton: {
     display: 'block',
     textAlign: 'center',
-    padding: '12px',
+    padding: '14px',
     backgroundColor: '#4CAF50',
     color: 'white',
     textDecoration: 'none',
-    borderRadius: '6px',
+    borderRadius: '8px',
     fontSize: '14px',
     fontWeight: '500',
   },
   editButton: {
     display: 'block',
     textAlign: 'center',
-    padding: '12px',
+    padding: '14px',
     backgroundColor: '#2196f3',
     color: 'white',
     textDecoration: 'none',
-    borderRadius: '6px',
+    borderRadius: '8px',
     fontSize: '14px',
     fontWeight: '500',
   },
 };
-
-// Add hover effect for recipe cards
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-  .recipe-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  }
-`, styleSheet.cssRules.length);
 
 export default RecipeList;
