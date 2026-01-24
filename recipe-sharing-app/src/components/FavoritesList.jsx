@@ -1,19 +1,20 @@
-import { Link } from 'react-router-dom';
 import useRecipeStore from '../stores/recipeStore';
-import DeleteRecipeButton from './DeleteRecipeButton';
+import { Link } from 'react-router-dom';
 
 const FavoritesList = () => {
+  // Get favorite recipes from the store
   const favoriteRecipes = useRecipeStore((state) => state.getFavoriteRecipes());
   const toggleFavorite = useRecipeStore((state) => state.toggleFavorite);
   const favoritesCount = useRecipeStore((state) => state.favorites.length);
 
+  // If no favorites, show a friendly message
   if (favoritesCount === 0) {
     return (
       <div style={styles.emptyState}>
-        <div style={styles.emptyIcon}>⭐</div>
-        <h3 style={styles.emptyTitle}>No Favorites Yet</h3>
-        <p style={styles.emptyText}>
-          You haven't added any recipes to your favorites. Browse recipes and click the heart icon to add them here!
+        <h2 style={styles.emptyTitle}>No Favorites Yet</h2>
+        <p style={styles.emptyMessage}>
+          You haven't added any recipes to your favorites yet.
+          Browse recipes and click the heart icon ❤️ to add them here!
         </p>
         <Link to="/" style={styles.browseButton}>
           Browse Recipes
@@ -25,10 +26,10 @@ const FavoritesList = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>
-          <span style={styles.heartIcon}>❤️</span> My Favorites ({favoritesCount})
-        </h2>
-        <p style={styles.subtitle}>Recipes you've loved and saved for later</p>
+        <h2 style={styles.title}>My Favorite Recipes</h2>
+        <p style={styles.subtitle}>
+          You have {favoritesCount} favorite {favoritesCount === 1 ? 'recipe' : 'recipes'}
+        </p>
       </div>
       
       <div style={styles.recipesGrid}>
@@ -41,40 +42,25 @@ const FavoritesList = () => {
               </div>
               <button
                 onClick={() => toggleFavorite(recipe.id)}
-                style={styles.favoriteButtonActive}
+                style={styles.removeButton}
                 title="Remove from favorites"
               >
-                ❤️
+                ❤️ Remove
               </button>
             </div>
             
-            <div style={styles.recipeContent}>
-              <h3 style={styles.recipeTitle}>{recipe.title}</h3>
-              <p style={styles.recipeDescription}>{recipe.description}</p>
-              
-              <div style={styles.tagsContainer}>
-                {recipe.tags?.slice(0, 3).map((tag, index) => (
-                  <span key={index} style={styles.tag}>
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-              
-              <div style={styles.recipeStats}>
-                <span style={styles.stat}>
-                  ⏱️ {recipe.prepTime} min
-                </span>
-                <span style={styles.stat}>
-                  🍽️ {recipe.ingredients.length} ingredients
-                </span>
-              </div>
+            <h3 style={styles.recipeTitle}>{recipe.title}</h3>
+            <p style={styles.recipeDescription}>{recipe.description}</p>
+            
+            <div style={styles.recipeDetails}>
+              <span style={styles.detailItem}>⏱️ {recipe.prepTime} min prep</span>
+              <span style={styles.detailItem}>👨‍🍳 {recipe.difficulty}</span>
             </div>
             
             <div style={styles.buttonContainer}>
               <Link to={`/recipe/${recipe.id}`} style={styles.viewButton}>
                 View Recipe
               </Link>
-              <DeleteRecipeButton recipeId={recipe.id} />
             </div>
           </div>
         ))}
@@ -86,7 +72,7 @@ const FavoritesList = () => {
 const styles = {
   container: {
     padding: '20px',
-    maxWidth: '1400px',
+    maxWidth: '1200px',
     margin: '0 auto',
   },
   header: {
@@ -97,33 +83,51 @@ const styles = {
     color: '#333',
     fontSize: '2rem',
     marginBottom: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-  },
-  heartIcon: {
-    fontSize: '2.5rem',
   },
   subtitle: {
     color: '#666',
     fontSize: '1.1rem',
   },
+  emptyState: {
+    textAlign: 'center',
+    padding: '60px 20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '12px',
+    margin: '40px auto',
+    maxWidth: '600px',
+  },
+  emptyTitle: {
+    color: '#333',
+    fontSize: '1.8rem',
+    marginBottom: '15px',
+  },
+  emptyMessage: {
+    color: '#666',
+    fontSize: '1.1rem',
+    lineHeight: '1.6',
+    marginBottom: '30px',
+  },
+  browseButton: {
+    display: 'inline-block',
+    padding: '12px 30px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    textDecoration: 'none',
+    borderRadius: '6px',
+    fontSize: '1rem',
+    fontWeight: '600',
+  },
   recipesGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '30px',
+    gap: '25px',
   },
   recipeCard: {
-    border: '1px solid #ffebee',
-    borderRadius: '12px',
+    border: '1px solid #ddd',
+    borderRadius: '10px',
     padding: '25px',
-    backgroundColor: '#fff5f5',
-    boxShadow: '0 4px 12px rgba(255, 107, 107, 0.1)',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    transition: 'all 0.3s ease',
+    backgroundColor: 'white',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
   },
   recipeHeader: {
     display: 'flex',
@@ -134,12 +138,11 @@ const styles = {
   recipeMeta: {
     display: 'flex',
     gap: '10px',
-    flexWrap: 'wrap',
   },
   recipeCategory: {
     backgroundColor: '#ffebee',
     color: '#e53935',
-    padding: '6px 14px',
+    padding: '6px 12px',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: '600',
@@ -147,135 +150,59 @@ const styles = {
   recipeDifficulty: {
     backgroundColor: '#e3f2fd',
     color: '#1976d2',
-    padding: '6px 14px',
+    padding: '6px 12px',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: '600',
   },
-  favoriteButtonActive: {
-    background: 'none',
+  removeButton: {
+    padding: '8px 16px',
+    backgroundColor: '#ff4444',
+    color: 'white',
     border: 'none',
-    fontSize: '24px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    padding: '8px',
-    borderRadius: '50%',
-    width: '40px',
-    height: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffebee',
-    transition: 'all 0.2s ease',
-  },
-  favoriteButtonActiveHover: {
-    backgroundColor: '#ffcdd2',
-    transform: 'scale(1.1)',
-  },
-  recipeContent: {
-    flex: 1,
-    marginBottom: '25px',
+    fontSize: '14px',
+    fontWeight: '600',
   },
   recipeTitle: {
-    marginTop: 0,
     color: '#333',
-    fontSize: '22px',
-    marginBottom: '15px',
+    fontSize: '1.4rem',
+    margin: '0 0 15px 0',
   },
   recipeDescription: {
     color: '#666',
-    fontSize: '15px',
+    fontSize: '1rem',
     lineHeight: '1.6',
     marginBottom: '20px',
   },
-  tagsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    marginBottom: '20px',
-  },
-  tag: {
-    backgroundColor: '#fff',
-    color: '#e53935',
-    padding: '6px 12px',
-    borderRadius: '16px',
-    fontSize: '12px',
-    border: '1px solid #ffcdd2',
-  },
-  recipeStats: {
+  recipeDetails: {
     display: 'flex',
     gap: '15px',
-    marginTop: '15px',
+    marginBottom: '20px',
     paddingTop: '15px',
-    borderTop: '1px solid #ffcdd2',
+    borderTop: '1px solid #eee',
   },
-  stat: {
-    fontSize: '13px',
-    color: '#666',
+  detailItem: {
+    color: '#777',
+    fontSize: '14px',
     display: 'flex',
     alignItems: 'center',
     gap: '5px',
   },
   buttonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
+    marginTop: '15px',
   },
   viewButton: {
     display: 'block',
     textAlign: 'center',
-    padding: '14px',
-    backgroundColor: '#e53935',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '8px',
-    fontSize: '15px',
-    fontWeight: '600',
-    transition: 'all 0.2s ease',
-  },
-  viewButtonHover: {
-    backgroundColor: '#d32f2f',
-    transform: 'translateY(-2px)',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '80px 20px',
-    backgroundColor: '#fff5f5',
-    borderRadius: '16px',
-    border: '2px dashed #ffcdd2',
-    margin: '40px auto',
-    maxWidth: '600px',
-  },
-  emptyIcon: {
-    fontSize: '60px',
-    marginBottom: '20px',
-  },
-  emptyTitle: {
-    color: '#333',
-    fontSize: '24px',
-    marginBottom: '15px',
-  },
-  emptyText: {
-    color: '#666',
-    fontSize: '16px',
-    lineHeight: '1.6',
-    marginBottom: '30px',
-    maxWidth: '400px',
-    margin: '0 auto 30px',
-  },
-  browseButton: {
-    display: 'inline-block',
-    padding: '15px 30px',
+    padding: '12px',
     backgroundColor: '#4CAF50',
     color: 'white',
     textDecoration: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
+    borderRadius: '6px',
+    fontSize: '1rem',
     fontWeight: '600',
-    transition: 'all 0.2s ease',
-  },
-  browseButtonHover: {
-    backgroundColor: '#45a049',
-    transform: 'translateY(-2px)',
   },
 };
 
