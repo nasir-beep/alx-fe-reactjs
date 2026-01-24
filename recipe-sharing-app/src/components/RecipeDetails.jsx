@@ -10,7 +10,6 @@ const RecipeDetails = () => {
   );
   const toggleFavorite = useRecipeStore((state) => state.toggleFavorite);
   const isFavorite = useRecipeStore((state) => state.isFavorite);
-  const deleteRecipe = useRecipeStore((state) => state.deleteRecipe);
 
   if (!recipe) {
     return (
@@ -23,20 +22,15 @@ const RecipeDetails = () => {
     );
   }
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this recipe?')) {
-      deleteRecipe(recipeId);
-      navigate('/');
-    }
-  };
-
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <button onClick={() => navigate('/')} style={styles.backButton}>
-          ← Back to Recipes
-        </button>
-        <div style={styles.headerActions}>
+      <button onClick={() => navigate('/')} style={styles.backButton}>
+        ← Back to Recipes
+      </button>
+      
+      <div style={styles.recipeCard}>
+        <div style={styles.recipeHeader}>
+          <h1 style={styles.title}>{recipe.title}</h1>
           <button
             onClick={() => toggleFavorite(recipeId)}
             style={isFavorite(recipeId) ? styles.favoriteButtonActive : styles.favoriteButton}
@@ -44,73 +38,35 @@ const RecipeDetails = () => {
           >
             {isFavorite(recipeId) ? '❤️ Remove from Favorites' : '🤍 Add to Favorites'}
           </button>
-          <button
-            onClick={() => navigate(`/edit/${recipe.id}`)}
-            style={styles.editButton}
-          >
-            Edit Recipe
-          </button>
-          <button
-            onClick={handleDelete}
-            style={styles.deleteButton}
-          >
-            Delete Recipe
-          </button>
-        </div>
-      </div>
-      
-      <div style={styles.recipeCard}>
-        <div style={styles.recipeHeader}>
-          <div style={styles.recipeMeta}>
-            <span style={styles.recipeCategory}>{recipe.category}</span>
-            <span style={styles.recipeDifficulty}>{recipe.difficulty}</span>
-            <span style={styles.prepTime}>⏱️ Prep: {recipe.prepTime} min</span>
-            <span style={styles.cookTime}>🔥 Cook: {recipe.cookTime} min</span>
-          </div>
         </div>
         
-        <h1 style={styles.title}>{recipe.title}</h1>
         <p style={styles.description}>{recipe.description}</p>
         
-        {recipe.tags && recipe.tags.length > 0 && (
-          <div style={styles.tagsContainer}>
-            {recipe.tags.map((tag, index) => (
-              <span key={index} style={styles.tag}>
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <div style={styles.recipeMeta}>
+          <span style={styles.metaItem}>Category: {recipe.category}</span>
+          <span style={styles.metaItem}>Difficulty: {recipe.difficulty}</span>
+          <span style={styles.metaItem}>Prep Time: {recipe.prepTime} min</span>
+          <span style={styles.metaItem}>Cook Time: {recipe.cookTime} min</span>
+        </div>
         
-        <div style={styles.sectionsContainer}>
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>Ingredients</h3>
-            <ul style={styles.list}>
-              {recipe.ingredients?.map((ingredient, index) => (
-                <li key={index} style={styles.listItem}>
-                  <span style={styles.checkbox}>□</span> {ingredient}
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>Instructions</h3>
-            <div style={styles.instructions}>
-              {recipe.instructions.split('\n').map((step, index) => (
-                <div key={index} style={styles.step}>
-                  <span style={styles.stepNumber}>{index + 1}.</span>
-                  <span style={styles.stepText}>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div style={styles.section}>
+          <h3>Ingredients</h3>
+          <ul style={styles.list}>
+            {recipe.ingredients?.map((ingredient, index) => (
+              <li key={index} style={styles.listItem}>{ingredient}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <div style={styles.section}>
+          <h3>Instructions</h3>
+          <p style={styles.instructions}>{recipe.instructions}</p>
         </div>
         
         <div style={styles.note}>
-          <strong>💡 Tip:</strong> {isFavorite(recipeId) 
-            ? 'This recipe is in your favorites! Add more favorites to get better recommendations.' 
-            : 'Add this recipe to your favorites to save it for later and improve your recommendations!'}
+          <strong>Note:</strong> {isFavorite(recipeId) 
+            ? 'This recipe is saved in your favorites!' 
+            : 'Add this recipe to favorites to save it for later.'}
         </div>
       </div>
     </div>
@@ -120,132 +76,53 @@ const RecipeDetails = () => {
 const styles = {
   container: {
     padding: '20px',
-    maxWidth: '1000px',
+    maxWidth: '800px',
     margin: '0 auto',
   },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '30px',
-    flexWrap: 'wrap',
-    gap: '15px',
-  },
   backButton: {
-    padding: '12px 24px',
+    padding: '10px 20px',
     backgroundColor: '#6c757d',
     color: 'white',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '16px',
-  },
-  headerActions: {
-    display: 'flex',
-    gap: '15px',
-    flexWrap: 'wrap',
-  },
-  favoriteButton: {
-    padding: '12px 24px',
-    backgroundColor: '#f5f5f5',
-    color: '#333',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  favoriteButtonActive: {
-    padding: '12px 24px',
-    backgroundColor: '#ffebee',
-    color: '#e53935',
-    border: '1px solid #ffcdd2',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  editButton: {
-    padding: '12px 24px',
-    backgroundColor: '#2196f3',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '16px',
-  },
-  deleteButton: {
-    padding: '12px 24px',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
+    marginBottom: '20px',
     fontSize: '16px',
   },
   recipeCard: {
     border: '1px solid #ddd',
-    borderRadius: '12px',
-    padding: '40px',
+    borderRadius: '8px',
+    padding: '30px',
     backgroundColor: 'white',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
   },
   recipeHeader: {
-    marginBottom: '30px',
-  },
-  recipeMeta: {
     display: 'flex',
-    gap: '15px',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: '20px',
-  },
-  recipeCategory: {
-    backgroundColor: '#e3f2fd',
-    color: '#1976d2',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontSize: '14px',
-    fontWeight: '600',
-  },
-  recipeDifficulty: {
-    backgroundColor: '#f3e5f5',
-    color: '#7b1fa2',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontSize: '14px',
-    fontWeight: '600',
-  },
-  prepTime: {
-    backgroundColor: '#e8f5e9',
-    color: '#2e7d32',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontSize: '14px',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-  },
-  cookTime: {
-    backgroundColor: '#fff3e0',
-    color: '#f57c00',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontSize: '14px',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
   },
   title: {
+    margin: 0,
     color: '#333',
-    fontSize: '2.5rem',
-    marginTop: 0,
-    marginBottom: '20px',
+  },
+  favoriteButton: {
+    padding: '10px 20px',
+    backgroundColor: '#f5f5f5',
+    color: '#333',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  },
+  favoriteButtonActive: {
+    padding: '10px 20px',
+    backgroundColor: '#ffebee',
+    color: '#e53935',
+    border: '1px solid #ffcdd2',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
   },
   description: {
     fontSize: '18px',
@@ -253,84 +130,40 @@ const styles = {
     lineHeight: '1.6',
     marginBottom: '30px',
   },
-  tagsContainer: {
+  recipeMeta: {
     display: 'flex',
+    gap: '20px',
+    marginBottom: '30px',
     flexWrap: 'wrap',
-    gap: '10px',
-    marginBottom: '40px',
   },
-  tag: {
+  metaItem: {
     backgroundColor: '#f5f5f5',
-    color: '#666',
     padding: '8px 16px',
-    borderRadius: '20px',
+    borderRadius: '4px',
     fontSize: '14px',
-  },
-  sectionsContainer: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 2fr',
-    gap: '40px',
-    marginBottom: '40px',
+    color: '#555',
   },
   section: {
     marginBottom: '30px',
   },
-  sectionTitle: {
-    color: '#4CAF50',
-    fontSize: '1.5rem',
-    marginBottom: '20px',
-    paddingBottom: '10px',
-    borderBottom: '2px solid #4CAF50',
-  },
   list: {
-    paddingLeft: '0',
-    listStyle: 'none',
+    paddingLeft: '20px',
   },
   listItem: {
-    marginBottom: '12px',
+    marginBottom: '8px',
     fontSize: '16px',
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '10px',
-  },
-  checkbox: {
-    color: '#4CAF50',
-    fontSize: '18px',
-    marginTop: '2px',
   },
   instructions: {
     fontSize: '16px',
     lineHeight: '1.8',
-  },
-  step: {
-    marginBottom: '20px',
-    display: 'flex',
-    gap: '15px',
-  },
-  stepNumber: {
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '14px',
-    fontWeight: '600',
-    flexShrink: 0,
-  },
-  stepText: {
-    flex: 1,
-    paddingTop: '5px',
+    whiteSpace: 'pre-line',
   },
   note: {
+    marginTop: '30px',
+    padding: '15px',
     backgroundColor: '#e8f5e9',
-    padding: '20px',
-    borderRadius: '8px',
+    borderRadius: '4px',
     color: '#2e7d32',
-    fontSize: '15px',
-    borderLeft: '4px solid #4CAF50',
   },
 };
 
