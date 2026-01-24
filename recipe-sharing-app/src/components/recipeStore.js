@@ -34,16 +34,30 @@ const useRecipeStore = create((set, get) => ({
       cookTime: 12,
       difficulty: "Easy",
       category: "Dessert"
+    },
+    {
+      id: 4,
+      title: "Chicken Alfredo Pasta",
+      description: "Creamy Alfredo pasta with grilled chicken breast.",
+      ingredients: ["Fettuccine", "Chicken breast", "Heavy cream", "Parmesan cheese", "Garlic", "Butter"],
+      instructions: "1. Cook pasta. 2. Grill chicken. 3. Make Alfredo sauce. 4. Combine all ingredients.",
+      prepTime: 20,
+      cookTime: 25,
+      difficulty: "Medium",
+      category: "Italian"
     }
   ],
   
-  // Favorites array
   favorites: [],
+  searchTerm: '',
+  selectedCategory: 'All',
   
-  // Simple actions
   addRecipe: (newRecipe) => set((state) => ({ 
     recipes: [...state.recipes, newRecipe] 
   })),
+  
+  setSearchTerm: (term) => set({ searchTerm: term }),
+  setSelectedCategory: (category) => set({ selectedCategory: category }),
   
   toggleFavorite: (recipeId) => set((state) => {
     if (state.favorites.includes(recipeId)) {
@@ -53,17 +67,28 @@ const useRecipeStore = create((set, get) => ({
     }
   }),
   
-  isFavorite: (recipeId) => {
-    return get().favorites.includes(recipeId);
-  },
+  isFavorite: (recipeId) => get().favorites.includes(recipeId),
   
   getFavoriteRecipes: () => {
     const { recipes, favorites } = get();
     return recipes.filter((recipe) => favorites.includes(recipe.id));
   },
   
-  // Simple recommendations - just returns first 3 recipes if no favorites
-  // or recipes from favorite categories if there are favorites
+  // Add this function back
+  getFilteredRecipes: () => {
+    const { recipes, searchTerm, selectedCategory } = get();
+    
+    return recipes.filter(recipe => {
+      const matchesSearch = !searchTerm || 
+        recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'All' || recipe.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  },
+  
   getRecommendations: () => {
     const { recipes, favorites } = get();
     
@@ -71,7 +96,6 @@ const useRecipeStore = create((set, get) => ({
       return recipes.slice(0, 3);
     }
     
-    // Get categories from favorites
     const favCategories = [];
     recipes.forEach(recipe => {
       if (favorites.includes(recipe.id) && !favCategories.includes(recipe.category)) {
@@ -79,14 +103,18 @@ const useRecipeStore = create((set, get) => ({
       }
     });
     
-    // Find recipes in those categories that aren't already favorites
     const recommendations = recipes.filter(recipe => {
       if (favorites.includes(recipe.id)) return false;
       return favCategories.includes(recipe.category);
     });
     
-    // Return recommendations or some default recipes
     return recommendations.length > 0 ? recommendations.slice(0, 3) : recipes.slice(0, 3);
+  },
+  
+  getCategories: () => {
+    const { recipes } = get();
+    const categories = ['All', ...new Set(recipes.map(recipe => recipe.category))];
+    return categories;
   }
 }));
 
