@@ -3,8 +3,8 @@ import './App.css';
 import RecipeList from './components/RecipeList';
 import AddRecipeForm from './components/AddRecipeForm';
 import RecipeDetails from './components/RecipeDetails';
-import EditRecipeForm from './components/EditRecipeForm';
 import FavoritesList from './components/FavoritesList';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
@@ -22,13 +22,14 @@ function App() {
         </header>
         
         <main style={styles.main}>
-          <Routes>
-            <Route path="/" element={<RecipeList />} />
-            <Route path="/favorites" element={<FavoritesList />} />
-            <Route path="/add" element={<AddRecipeForm />} />
-            <Route path="/recipe/:id" element={<RecipeDetails />} />
-            <Route path="/edit/:id" element={<EditRecipeForm />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<RecipeList />} />
+              <Route path="/favorites" element={<FavoritesList />} />
+              <Route path="/add" element={<AddRecipeForm />} />
+              <Route path="/recipe/:id" element={<RecipeDetails />} />
+            </Routes>
+          </ErrorBoundary>
         </main>
         
         <footer style={styles.footer}>
