@@ -49,43 +49,22 @@ const useRecipeStore = create((set, get) => ({
       difficulty: "Medium",
       category: "Italian",
       tags: ["pasta", "chicken", "creamy", "dinner", "italian"]
-    },
-    {
-      id: 5,
-      title: "Caesar Salad",
-      description: "Fresh Caesar salad with homemade dressing and croutons.",
-      ingredients: ["Romaine lettuce", "Parmesan cheese", "Croutons", "Anchovy paste", "Garlic", "Lemon juice", "Olive oil"],
-      instructions: "1. Wash and chop lettuce. 2. Make dressing. 3. Toss lettuce with dressing. 4. Add croutons and cheese.",
-      prepTime: 15,
-      cookTime: 0,
-      difficulty: "Easy",
-      category: "Salad",
-      tags: ["salad", "healthy", "vegetarian", "lunch", "quick"]
-    },
-    {
-      id: 6,
-      title: "Beef Tacos",
-      description: "Flavorful beef tacos with fresh toppings and homemade seasoning.",
-      ingredients: ["Ground beef", "Taco shells", "Tomatoes", "Lettuce", "Cheese", "Sour cream", "Taco seasoning"],
-      instructions: "1. Cook beef with seasoning. 2. Prepare toppings. 3. Heat taco shells. 4. Assemble tacos.",
-      prepTime: 20,
-      cookTime: 15,
-      difficulty: "Easy",
-      category: "Mexican",
-      tags: ["mexican", "beef", "dinner", "family", "spicy"]
     }
   ],
   
-  // User favorites state
+  // NEW: Favorites array to store favorite recipe IDs
   favorites: [],
   
-  // Search and filter states
+  // NEW: Recommendations array (we'll generate these dynamically)
+  recommendations: [],
+  
+  // Search and filter states (existing)
   searchTerm: '',
   selectedCategory: 'All',
   selectedDifficulty: 'All',
   maxPrepTime: 120,
   
-  // Actions
+  // Existing recipe actions
   addRecipe: (newRecipe) => set((state) => ({ 
     recipes: [...state.recipes, newRecipe] 
   })),
@@ -98,47 +77,57 @@ const useRecipeStore = create((set, get) => ({
     recipes: state.recipes.filter((recipe) => recipe.id !== id)
   })),
   
-  // Favorites actions
+  // ========== NEW FAVORITES ACTIONS ==========
+  
+  // Add a recipe to favorites
   addFavorite: (recipeId) => set((state) => {
     if (!state.favorites.includes(recipeId)) {
       return { favorites: [...state.favorites, recipeId] };
     }
-    return state;
+    return state; // Already in favorites
   }),
+  
+  // Remove a recipe from favorites
   removeFavorite: (recipeId) => set((state) => ({
     favorites: state.favorites.filter((id) => id !== recipeId)
   })),
+  
+  // Toggle favorite status (add if not in favorites, remove if already in favorites)
   toggleFavorite: (recipeId) => set((state) => {
     if (state.favorites.includes(recipeId)) {
+      // Remove from favorites
       return { favorites: state.favorites.filter((id) => id !== recipeId) };
     } else {
+      // Add to favorites
       return { favorites: [...state.favorites, recipeId] };
     }
   }),
   
-  // Check if recipe is favorited
+  // Check if a recipe is in favorites
   isFavorite: (recipeId) => {
     return get().favorites.includes(recipeId);
   },
   
-  // Get favorite recipes
+  // Get all favorite recipes (full recipe objects)
   getFavoriteRecipes: () => {
     const { recipes, favorites } = get();
     return recipes.filter((recipe) => favorites.includes(recipe.id));
   },
   
-  // Generate personalized recommendations based on favorites
-  getRecommendations: () => {
-    const { recipes, favorites } = get();
+  // ========== NEW RECOMMENDATIONS SYSTEM ==========
+  
+  // Generate recommendations based on user's favorites
+  generateRecommendations: () => set((state) => {
+    const { recipes, favorites } = state;
     
+    // If no favorites, recommend popular recipes
     if (favorites.length === 0) {
-      // If no favorites, show popular recipes (based on tags)
-      const popularTags = ["dinner", "quick", "healthy"];
-      return recipes
-        .filter((recipe) => 
-          recipe.tags?.some((tag) => popularTags.includes(tag))
-        )
-        .slice(0, 4);
+      const popularRecipes = recipes.filter(recipe => 
+        recipe.tags?.includes("popular") || 
+        recipe.tags?.includes("dinner") ||
+        recipe.difficulty === "Easy"
+      );
+      return { recommendations: popularRecipes.slice(0, 3) };
     }
     
     // Get favorite recipes
@@ -146,66 +135,44 @@ const useRecipeStore = create((set, get) => ({
       favorites.includes(recipe.id)
     );
     
-    // Extract tags from favorite recipes
-    const favoriteTags = favoriteRecipes.flatMap((recipe) => recipe.tags || []);
+    // Extract categories and tags from favorites
+    const favoriteCategories = favoriteRecipes.map(recipe => recipe.category);
+    const favoriteTags = favoriteRecipes.flatMap(recipe => recipe.tags || []);
     
-    // Count tag frequency
-    const tagFrequency = {};
-    favoriteTags.forEach((tag) => {
-      tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
+    // Find recipes that match favorite categories or tags but aren't already favorites
+    const recommended = recipes.filter(recipe => {
+      // Skip if already in favorites
+      if (favorites.includes(recipe.id)) return false;
+      
+      // Check if recipe matches favorite categories
+      const categoryMatch = favoriteCategories.includes(recipe.category);
+      
+      // Check if recipe has any favorite tags
+      const tagMatch = recipe.tags?.some(tag => favoriteTags.includes(tag));
+      
+      // Recommend if matches category OR tags
+      return categoryMatch || tagMatch;
     });
     
-    // Sort tags by frequency
-    const sortedTags = Object.entries(tagFrequency)
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag)
-      .slice(0, 5);
-    
-    // Find recipes with matching tags that aren't already favorites
-    const recommendations = recipes
-      .filter((recipe) => {
-        if (favorites.includes(recipe.id)) return false;
-        
-        // Score based on tag matches
-        const recipeTags = recipe.tags || [];
-        const matchScore = recipeTags.reduce((score, tag) => {
-          return score + (sortedTags.includes(tag) ? 1 : 0);
-        }, 0);
-        
-        return matchScore > 0;
-      })
-      .sort((a, b) => {
-        // Calculate scores for sorting
-        const aTags = a.tags || [];
-        const bTags = b.tags || [];
-        
-        const aScore = aTags.reduce((score, tag) => 
-          score + (sortedTags.includes(tag) ? 1 : 0), 0
-        );
-        const bScore = bTags.reduce((score, tag) => 
-          score + (sortedTags.includes(tag) ? 1 : 0), 0
-        );
-        
-        return bScore - aScore;
-      })
-      .slice(0, 6);
-    
-    // If not enough recommendations, add some popular ones
-    if (recommendations.length < 4) {
-      const popularRecipes = recipes
-        .filter((recipe) => 
-          !favorites.includes(recipe.id) && 
-          !recommendations.some((rec) => rec.id === recipe.id)
-        )
-        .slice(0, 4 - recommendations.length);
-      
-      return [...recommendations, ...popularRecipes];
+    // If we don't have enough recommendations, add some random ones
+    if (recommended.length < 3) {
+      const remainingRecipes = recipes.filter(recipe => 
+        !favorites.includes(recipe.id) && 
+        !recommended.some(rec => rec.id === recipe.id)
+      );
+      const additional = remainingRecipes.slice(0, 3 - recommended.length);
+      return { recommendations: [...recommended, ...additional] };
     }
     
-    return recommendations;
+    return { recommendations: recommended.slice(0, 3) };
+  }),
+  
+  // Get current recommendations
+  getRecommendations: () => {
+    return get().recommendations;
   },
   
-  // Search and filter actions
+  // Existing search and filter actions
   setSearchTerm: (term) => set({ searchTerm: term }),
   setSelectedCategory: (category) => set({ selectedCategory: category }),
   setSelectedDifficulty: (difficulty) => set({ selectedDifficulty: difficulty }),
@@ -217,43 +184,33 @@ const useRecipeStore = create((set, get) => ({
     maxPrepTime: 120
   }),
   
-  // Computed filtered recipes
+  // Existing computed filtered recipes
   getFilteredRecipes: () => {
     const { recipes, searchTerm, selectedCategory, selectedDifficulty, maxPrepTime } = get();
     
     return recipes.filter(recipe => {
-      // Search term filter
       const matchesSearch = !searchTerm || 
         recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         recipe.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         recipe.ingredients.some(ingredient => 
           ingredient.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        (recipe.tags && recipe.tags.some(tag => 
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        ));
+        );
       
-      // Category filter
       const matchesCategory = selectedCategory === 'All' || recipe.category === selectedCategory;
-      
-      // Difficulty filter
       const matchesDifficulty = selectedDifficulty === 'All' || recipe.difficulty === selectedDifficulty;
-      
-      // Prep time filter
       const matchesPrepTime = recipe.prepTime <= maxPrepTime;
       
       return matchesSearch && matchesCategory && matchesDifficulty && matchesPrepTime;
     });
   },
   
-  // Get unique categories for filter dropdown
+  // Existing helper functions
   getCategories: () => {
     const { recipes } = get();
     const categories = ['All', ...new Set(recipes.map(recipe => recipe.category))];
     return categories;
   },
   
-  // Get unique difficulties for filter dropdown
   getDifficulties: () => {
     const { recipes } = get();
     const difficulties = ['All', ...new Set(recipes.map(recipe => recipe.difficulty))];
