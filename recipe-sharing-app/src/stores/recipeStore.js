@@ -52,19 +52,16 @@ const useRecipeStore = create((set, get) => ({
     }
   ],
   
-  // NEW: Favorites array to store favorite recipe IDs
+  // Favorites array
   favorites: [],
   
-  // NEW: Recommendations array (we'll generate these dynamically)
-  recommendations: [],
-  
-  // Search and filter states (existing)
+  // Search and filter states
   searchTerm: '',
   selectedCategory: 'All',
   selectedDifficulty: 'All',
   maxPrepTime: 120,
   
-  // Existing recipe actions
+  // Recipe CRUD actions
   addRecipe: (newRecipe) => set((state) => ({ 
     recipes: [...state.recipes, newRecipe] 
   })),
@@ -77,57 +74,43 @@ const useRecipeStore = create((set, get) => ({
     recipes: state.recipes.filter((recipe) => recipe.id !== id)
   })),
   
-  // ========== NEW FAVORITES ACTIONS ==========
-  
-  // Add a recipe to favorites
+  // Favorites actions
   addFavorite: (recipeId) => set((state) => {
     if (!state.favorites.includes(recipeId)) {
       return { favorites: [...state.favorites, recipeId] };
     }
-    return state; // Already in favorites
+    return state;
   }),
   
-  // Remove a recipe from favorites
   removeFavorite: (recipeId) => set((state) => ({
     favorites: state.favorites.filter((id) => id !== recipeId)
   })),
   
-  // Toggle favorite status (add if not in favorites, remove if already in favorites)
   toggleFavorite: (recipeId) => set((state) => {
     if (state.favorites.includes(recipeId)) {
-      // Remove from favorites
       return { favorites: state.favorites.filter((id) => id !== recipeId) };
     } else {
-      // Add to favorites
       return { favorites: [...state.favorites, recipeId] };
     }
   }),
   
-  // Check if a recipe is in favorites
   isFavorite: (recipeId) => {
     return get().favorites.includes(recipeId);
   },
   
-  // Get all favorite recipes (full recipe objects)
   getFavoriteRecipes: () => {
     const { recipes, favorites } = get();
     return recipes.filter((recipe) => favorites.includes(recipe.id));
   },
   
-  // ========== NEW RECOMMENDATIONS SYSTEM ==========
-  
-  // Generate recommendations based on user's favorites
-  generateRecommendations: () => set((state) => {
-    const { recipes, favorites } = state;
+  // SIMPLIFIED: Get recommendations directly without separate state
+  getRecommendations: () => {
+    const { recipes, favorites } = get();
     
-    // If no favorites, recommend popular recipes
+    // If no favorites, show popular recipes
     if (favorites.length === 0) {
-      const popularRecipes = recipes.filter(recipe => 
-        recipe.tags?.includes("popular") || 
-        recipe.tags?.includes("dinner") ||
-        recipe.difficulty === "Easy"
-      );
-      return { recommendations: popularRecipes.slice(0, 3) };
+      // Return 3 popular recipes
+      return recipes.slice(0, 3);
     }
     
     // Get favorite recipes
@@ -135,44 +118,32 @@ const useRecipeStore = create((set, get) => ({
       favorites.includes(recipe.id)
     );
     
-    // Extract categories and tags from favorites
+    // Get categories from favorites
     const favoriteCategories = favoriteRecipes.map(recipe => recipe.category);
-    const favoriteTags = favoriteRecipes.flatMap(recipe => recipe.tags || []);
     
-    // Find recipes that match favorite categories or tags but aren't already favorites
+    // Find recipes that match favorite categories but aren't already favorites
     const recommended = recipes.filter(recipe => {
       // Skip if already in favorites
       if (favorites.includes(recipe.id)) return false;
       
       // Check if recipe matches favorite categories
-      const categoryMatch = favoriteCategories.includes(recipe.category);
-      
-      // Check if recipe has any favorite tags
-      const tagMatch = recipe.tags?.some(tag => favoriteTags.includes(tag));
-      
-      // Recommend if matches category OR tags
-      return categoryMatch || tagMatch;
+      return favoriteCategories.includes(recipe.category);
     });
     
-    // If we don't have enough recommendations, add some random ones
+    // If we don't have enough recommendations, add some extra ones
     if (recommended.length < 3) {
       const remainingRecipes = recipes.filter(recipe => 
         !favorites.includes(recipe.id) && 
         !recommended.some(rec => rec.id === recipe.id)
       );
       const additional = remainingRecipes.slice(0, 3 - recommended.length);
-      return { recommendations: [...recommended, ...additional] };
+      return [...recommended, ...additional];
     }
     
-    return { recommendations: recommended.slice(0, 3) };
-  }),
-  
-  // Get current recommendations
-  getRecommendations: () => {
-    return get().recommendations;
+    return recommended.slice(0, 3);
   },
   
-  // Existing search and filter actions
+  // Search and filter actions
   setSearchTerm: (term) => set({ searchTerm: term }),
   setSelectedCategory: (category) => set({ selectedCategory: category }),
   setSelectedDifficulty: (difficulty) => set({ selectedDifficulty: difficulty }),
@@ -184,17 +155,14 @@ const useRecipeStore = create((set, get) => ({
     maxPrepTime: 120
   }),
   
-  // Existing computed filtered recipes
+  // Computed filtered recipes
   getFilteredRecipes: () => {
     const { recipes, searchTerm, selectedCategory, selectedDifficulty, maxPrepTime } = get();
     
     return recipes.filter(recipe => {
       const matchesSearch = !searchTerm || 
         recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        recipe.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        recipe.ingredients.some(ingredient => 
-          ingredient.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === 'All' || recipe.category === selectedCategory;
       const matchesDifficulty = selectedDifficulty === 'All' || recipe.difficulty === selectedDifficulty;
@@ -204,7 +172,7 @@ const useRecipeStore = create((set, get) => ({
     });
   },
   
-  // Existing helper functions
+  // Helper functions
   getCategories: () => {
     const { recipes } = get();
     const categories = ['All', ...new Set(recipes.map(recipe => recipe.category))];
