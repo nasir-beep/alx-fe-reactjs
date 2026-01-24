@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useRecipeStore from '../stores/recipeStore';
 
 const DeleteRecipeButton = ({ recipeId, onDelete }) => {
   const navigate = useNavigate();
   const deleteRecipe = useRecipeStore((state) => state.deleteRecipe);
+  const removeFavorite = useRecipeStore((state) => state.removeFavorite);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = () => {
+    // Remove from favorites first if it's there
+    removeFavorite(recipeId);
+    // Then delete the recipe
     deleteRecipe(recipeId);
     if (onDelete) {
       onDelete();
@@ -46,52 +51,53 @@ const DeleteRecipeButton = ({ recipeId, onDelete }) => {
   );
 };
 
-import { useState } from 'react';
-
 const styles = {
   container: {
-    marginTop: '20px',
+    marginTop: '10px',
   },
   deleteButton: {
-    padding: '12px 24px',
+    padding: '14px',
     backgroundColor: '#dc3545',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '14px',
+    fontWeight: '500',
     width: '100%',
+    transition: 'all 0.2s ease',
   },
   confirmDialog: {
     backgroundColor: '#f8f9fa',
     padding: '20px',
     borderRadius: '8px',
-    border: '1px solid #dc3545',
+    border: '2px solid #dc3545',
   },
   confirmText: {
     marginBottom: '20px',
     color: '#333',
     fontSize: '16px',
+    textAlign: 'center',
   },
   confirmButtons: {
     display: 'flex',
-    gap: '10px',
+    gap: '15px',
   },
   cancelButton: {
-    padding: '10px 20px',
+    padding: '12px 20px',
     backgroundColor: '#6c757d',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
     flex: 1,
   },
   confirmDeleteButton: {
-    padding: '10px 20px',
+    padding: '12px 20px',
     backgroundColor: '#dc3545',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
     flex: 1,
   },
