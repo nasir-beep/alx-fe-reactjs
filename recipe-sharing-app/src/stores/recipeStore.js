@@ -103,44 +103,35 @@ const useRecipeStore = create((set, get) => ({
     return recipes.filter((recipe) => favorites.includes(recipe.id));
   },
   
-  // SIMPLIFIED: Get recommendations directly without separate state
+  // FIXED: Get recommendations - simple implementation
   getRecommendations: () => {
     const { recipes, favorites } = get();
     
-    // If no favorites, show popular recipes
+    // If no favorites, show first 3 recipes as popular
     if (favorites.length === 0) {
-      // Return 3 popular recipes
       return recipes.slice(0, 3);
     }
     
-    // Get favorite recipes
-    const favoriteRecipes = recipes.filter((recipe) => 
-      favorites.includes(recipe.id)
-    );
-    
-    // Get categories from favorites
+    // Get favorite categories
+    const favoriteRecipes = recipes.filter(recipe => favorites.includes(recipe.id));
     const favoriteCategories = favoriteRecipes.map(recipe => recipe.category);
     
-    // Find recipes that match favorite categories but aren't already favorites
-    const recommended = recipes.filter(recipe => {
-      // Skip if already in favorites
-      if (favorites.includes(recipe.id)) return false;
-      
-      // Check if recipe matches favorite categories
+    // Find recipes in favorite categories that aren't already favorites
+    const recommendations = recipes.filter(recipe => {
+      if (favorites.includes(recipe.id)) return false; // Skip favorites
       return favoriteCategories.includes(recipe.category);
     });
     
-    // If we don't have enough recommendations, add some extra ones
-    if (recommended.length < 3) {
-      const remainingRecipes = recipes.filter(recipe => 
+    // If we need more recommendations, add some random ones
+    if (recommendations.length < 3) {
+      const remaining = recipes.filter(recipe => 
         !favorites.includes(recipe.id) && 
-        !recommended.some(rec => rec.id === recipe.id)
+        !recommendations.some(r => r.id === recipe.id)
       );
-      const additional = remainingRecipes.slice(0, 3 - recommended.length);
-      return [...recommended, ...additional];
+      return [...recommendations, ...remaining.slice(0, 3 - recommendations.length)];
     }
     
-    return recommended.slice(0, 3);
+    return recommendations.slice(0, 3);
   },
   
   // Search and filter actions
