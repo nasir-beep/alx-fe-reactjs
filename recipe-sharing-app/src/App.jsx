@@ -1,43 +1,35 @@
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
 import './App.css'
-import RecipeList from './components/RecipeList'
-import AddRecipeForm from './components/AddRecipeForm'
 
 function App() {
+  const [count, setCount] = useState(0)
+
   return (
-    <div className="App">
-      <header style={styles.header}>
-        <h1 style={styles.title}>🍳 Recipe Sharing App</h1>
-      </header>
-      <main>
-        <AddRecipeForm />
-        <RecipeList />
-      </main>
-      <footer style={styles.footer}>
-        <p>Built with React & Zustand</p>
-      </footer>
-    </div>
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
   )
 }
-
-const styles = {
-  header: {
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    padding: '20px',
-    textAlign: 'center',
-    marginBottom: '30px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '2.5rem',
-  },
-  footer: {
-    textAlign: 'center',
-    padding: '20px',
-    marginTop: '40px',
-    color: '#666',
-    borderTop: '1px solid #eee',
-  },
-};
 
 export default App
