@@ -1,17 +1,10 @@
-import { useEffect } from 'react';
 import useRecipeStore from '../stores/recipeStore';
 import { Link } from 'react-router-dom';
 
 const RecommendationsList = () => {
-  // Get recommendations and favorites from store
-  const recommendations = useRecipeStore((state) => state.recommendations);
-  const generateRecommendations = useRecipeStore((state) => state.generateRecommendations);
+  // Get recommendations directly - no need for generateRecommendations
+  const recommendations = useRecipeStore((state) => state.getRecommendations());
   const favorites = useRecipeStore((state) => state.favorites);
-  
-  // Generate recommendations only when component mounts or favorites change
-  useEffect(() => {
-    generateRecommendations();
-  }, [favorites.length]); // Only depend on favorites length, not the generateRecommendations function
 
   // Don't show if no recommendations
   if (!recommendations || recommendations.length === 0) {
