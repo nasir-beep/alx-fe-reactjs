@@ -5,9 +5,8 @@ const RecipeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const recipeId = parseInt(id);
-  const recipe = useRecipeStore((state) =>
-    state.recipes.find((recipe) => recipe.id === recipeId)
-  );
+  const recipes = useRecipeStore((state) => state.recipes);
+  const recipe = recipes.find((recipe) => recipe.id === recipeId);
   const toggleFavorite = useRecipeStore((state) => state.toggleFavorite);
   const isFavorite = useRecipeStore((state) => state.isFavorite);
 
@@ -28,13 +27,12 @@ const RecipeDetails = () => {
         ← Back to Recipes
       </button>
       
-      <div style={styles.recipeCard}>
-        <div style={styles.recipeHeader}>
+      <div style={styles.card}>
+        <div style={styles.header}>
           <h1 style={styles.title}>{recipe.title}</h1>
           <button
             onClick={() => toggleFavorite(recipeId)}
-            style={isFavorite(recipeId) ? styles.favoriteButtonActive : styles.favoriteButton}
-            title={isFavorite(recipeId) ? "Remove from favorites" : "Add to favorites"}
+            style={isFavorite(recipeId) ? styles.favActive : styles.fav}
           >
             {isFavorite(recipeId) ? '❤️ Remove from Favorites' : '🤍 Add to Favorites'}
           </button>
@@ -42,7 +40,7 @@ const RecipeDetails = () => {
         
         <p style={styles.description}>{recipe.description}</p>
         
-        <div style={styles.recipeMeta}>
+        <div style={styles.meta}>
           <span style={styles.metaItem}>Category: {recipe.category}</span>
           <span style={styles.metaItem}>Difficulty: {recipe.difficulty}</span>
           <span style={styles.metaItem}>Prep Time: {recipe.prepTime} min</span>
@@ -51,9 +49,9 @@ const RecipeDetails = () => {
         
         <div style={styles.section}>
           <h3>Ingredients</h3>
-          <ul style={styles.list}>
-            {recipe.ingredients?.map((ingredient, index) => (
-              <li key={index} style={styles.listItem}>{ingredient}</li>
+          <ul>
+            {recipe.ingredients.map((ingredient, index) => (
+              <li key={index}>{ingredient}</li>
             ))}
           </ul>
         </div>
@@ -62,109 +60,80 @@ const RecipeDetails = () => {
           <h3>Instructions</h3>
           <p style={styles.instructions}>{recipe.instructions}</p>
         </div>
-        
-        <div style={styles.note}>
-          <strong>Note:</strong> {isFavorite(recipeId) 
-            ? 'This recipe is saved in your favorites!' 
-            : 'Add this recipe to favorites to save it for later.'}
-        </div>
       </div>
     </div>
   );
 };
 
 const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '800px',
-    margin: '0 auto',
-  },
-  backButton: {
-    padding: '10px 20px',
-    backgroundColor: '#6c757d',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
+  container: { padding: '20px', maxWidth: '800px', margin: '0 auto' },
+  backButton: { 
+    padding: '10px 20px', 
+    backgroundColor: '#666', 
+    color: 'white', 
+    border: 'none', 
+    borderRadius: '4px', 
     cursor: 'pointer',
-    marginBottom: '20px',
-    fontSize: '16px',
+    marginBottom: '20px'
   },
-  recipeCard: {
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    padding: '30px',
+  card: { 
+    border: '1px solid #ddd', 
+    borderRadius: '10px', 
+    padding: '30px', 
     backgroundColor: 'white',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
   },
-  recipeHeader: {
+  header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: '20px'
   },
-  title: {
-    margin: 0,
-    color: '#333',
-  },
-  favoriteButton: {
+  title: { margin: 0, fontSize: '28px' },
+  fav: {
     padding: '10px 20px',
     backgroundColor: '#f5f5f5',
     color: '#333',
     border: '1px solid #ddd',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '16px'
   },
-  favoriteButtonActive: {
+  favActive: {
     padding: '10px 20px',
     backgroundColor: '#ffebee',
-    color: '#e53935',
+    color: '#ff4444',
     border: '1px solid #ffcdd2',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '16px'
   },
   description: {
     fontSize: '18px',
     color: '#666',
     lineHeight: '1.6',
-    marginBottom: '30px',
+    marginBottom: '30px'
   },
-  recipeMeta: {
+  meta: {
     display: 'flex',
-    gap: '20px',
+    gap: '15px',
     marginBottom: '30px',
-    flexWrap: 'wrap',
+    flexWrap: 'wrap'
   },
   metaItem: {
     backgroundColor: '#f5f5f5',
     padding: '8px 16px',
-    borderRadius: '4px',
-    fontSize: '14px',
-    color: '#555',
+    borderRadius: '20px',
+    fontSize: '14px'
   },
   section: {
-    marginBottom: '30px',
-  },
-  list: {
-    paddingLeft: '20px',
-  },
-  listItem: {
-    marginBottom: '8px',
-    fontSize: '16px',
+    marginBottom: '30px'
   },
   instructions: {
     fontSize: '16px',
     lineHeight: '1.8',
-    whiteSpace: 'pre-line',
-  },
-  note: {
-    marginTop: '30px',
-    padding: '15px',
-    backgroundColor: '#e8f5e9',
-    borderRadius: '4px',
-    color: '#2e7d32',
-  },
+    whiteSpace: 'pre-line'
+  }
 };
 
 export default RecipeDetails;
