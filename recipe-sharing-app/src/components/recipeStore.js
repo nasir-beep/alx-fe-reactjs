@@ -52,12 +52,40 @@ const useRecipeStore = create((set, get) => ({
   searchTerm: '',
   selectedCategory: 'All',
   
+  // Recipe CRUD actions
   addRecipe: (newRecipe) => set((state) => ({ 
     recipes: [...state.recipes, newRecipe] 
   })),
   
+  // ADDED: Update recipe function
+  updateRecipe: (id, updatedRecipe) => set((state) => ({
+    recipes: state.recipes.map((recipe) =>
+      recipe.id === id ? { ...recipe, ...updatedRecipe } : recipe
+    )
+  })),
+  
+  // ADDED: Delete recipe function
+  deleteRecipe: (id) => set((state) => ({
+    recipes: state.recipes.filter((recipe) => recipe.id !== id),
+    // Also remove from favorites if it was favorited
+    favorites: state.favorites.filter((favId) => favId !== id)
+  })),
+  
+  // Search and filter actions
   setSearchTerm: (term) => set({ searchTerm: term }),
   setSelectedCategory: (category) => set({ selectedCategory: category }),
+  
+  // Favorites actions
+  addFavorite: (recipeId) => set((state) => {
+    if (!state.favorites.includes(recipeId)) {
+      return { favorites: [...state.favorites, recipeId] };
+    }
+    return state;
+  }),
+  
+  removeFavorite: (recipeId) => set((state) => ({
+    favorites: state.favorites.filter((id) => id !== recipeId)
+  })),
   
   toggleFavorite: (recipeId) => set((state) => {
     if (state.favorites.includes(recipeId)) {
@@ -74,7 +102,12 @@ const useRecipeStore = create((set, get) => ({
     return recipes.filter((recipe) => favorites.includes(recipe.id));
   },
   
-  // Add this function back
+  // Simple recommendations - returns first 3 recipes
+  getRecommendations: () => {
+    const { recipes } = get();
+    return recipes.slice(0, 3);
+  },
+  
   getFilteredRecipes: () => {
     const { recipes, searchTerm, selectedCategory } = get();
     
@@ -87,28 +120,6 @@ const useRecipeStore = create((set, get) => ({
       
       return matchesSearch && matchesCategory;
     });
-  },
-  
-  getRecommendations: () => {
-    const { recipes, favorites } = get();
-    
-    if (favorites.length === 0) {
-      return recipes.slice(0, 3);
-    }
-    
-    const favCategories = [];
-    recipes.forEach(recipe => {
-      if (favorites.includes(recipe.id) && !favCategories.includes(recipe.category)) {
-        favCategories.push(recipe.category);
-      }
-    });
-    
-    const recommendations = recipes.filter(recipe => {
-      if (favorites.includes(recipe.id)) return false;
-      return favCategories.includes(recipe.category);
-    });
-    
-    return recommendations.length > 0 ? recommendations.slice(0, 3) : recipes.slice(0, 3);
   },
   
   getCategories: () => {
