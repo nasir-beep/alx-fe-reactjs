@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Search from './components/Search';
+import SearchBar from './components/SearchBar';
 import UserProfile from './components/UserProfile';
 import githubService from './services/githubService';
 import './App.css';
@@ -54,7 +54,7 @@ function App() {
         <h1>GitHub User Search</h1>
         <p className="subtitle">Find and explore GitHub profiles</p>
         
-        <Search 
+        <SearchBar 
           onSearch={handleSearch} 
           isLoading={isLoading}
           error={error}
