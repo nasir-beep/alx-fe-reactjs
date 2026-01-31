@@ -1,0 +1,189 @@
+.user-profile {
+  background-color: #1c2128;
+  border: 1px solid #2d333b;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.profile-header {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #539bf5;
+  object-fit: cover;
+}
+
+.profile-info h2 {
+  margin: 0 0 5px 0;
+  color: #cdd9e5;
+  font-size: 28px;
+}
+
+.username {
+  margin: 0 0 15px 0;
+  color: #768390;
+  font-size: 18px;
+}
+
+.bio {
+  margin: 15px 0 0 0;
+  color: #adbac7;
+  line-height: 1.5;
+  max-width: 500px;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 30px 0;
+  padding: 25px 0;
+  border-top: 1px solid #2d333b;
+  border-bottom: 1px solid #2d333b;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #539bf5;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #768390;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #adbac7;
+}
+
+.detail-label {
+  width: 24px;
+  font-size: 18px;
+}
+
+.detail a {
+  color: #539bf5;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.detail a:hover {
+  color: #6cb6ff;
+  text-decoration: underline;
+}
+
+.profile-actions {
+  margin-top: 30px;
+}
+
+.github-button {
+  display: inline-block;
+  padding: 14px 28px;
+  background-color: #347d39;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.github-button:hover {
+  background-color: #46954a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #2d333b;
+  border-top: 4px solid #539bf5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: rgba(205, 34, 68, 0.1);
+  border: 1px solid rgba(205, 34, 68, 0.2);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.error-container h3 {
+  color: #cd4246;
+  margin: 0 0 10px 0;
+}
+
+.error-container p {
+  color: #cd4246;
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #768390;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin: 0 0 10px 0;
+  color: #adbac7;
+}
