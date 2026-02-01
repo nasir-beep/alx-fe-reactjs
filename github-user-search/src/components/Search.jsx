@@ -32,29 +32,7 @@ const Search = () => {
   };
 
   const buildQuery = () => {
-    let query = '';
-    
-    if (searchData.username) {
-      query += `${searchData.username} in:login`;
-    }
-    
-    if (searchData.location) {
-      query += ` location:"${searchData.location}"`;
-    }
-    
-    if (searchData.minRepos) {
-      query += ` repos:>=${searchData.minRepos}`;
-    }
-    
-    if (searchData.language) {
-      query += ` language:"${searchData.language}"`;
-    }
-    
-    if (searchData.followers) {
-      query += ` followers:>=${searchData.followers}`;
-    }
-    
-    return query.trim();
+    return githubService.buildSearchQuery(searchData);
   };
 
   const handleSearch = async (e, newPage = 1) => {
@@ -63,20 +41,20 @@ const Search = () => {
     setError('');
     
     try {
-      const query = buildQuery();
+      let result;
       
-      if (!query && searchType === 'advanced') {
-        setError('Please enter at least one search criteria');
-        setLoading(false);
-        return;
+      if (searchType === 'basic' && searchData.username) {
+        // For basic search, just search by username
+        result = await githubService.searchUsers(searchData.username);
+      } else {
+        // For advanced search, use all criteria
+        result = await githubService.advancedSearchUsers(
+          searchData,
+          newPage,
+          searchData.sort,
+          searchData.order
+        );
       }
-      
-      const result = await githubService.advancedSearchUsers(
-        query || searchData.username, 
-        newPage,
-        searchData.sort,
-        searchData.order
-      );
       
       if (result.success) {
         if (newPage === 1) {
