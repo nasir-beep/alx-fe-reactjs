@@ -1,108 +1,89 @@
-// src/components/Search.jsx
-import React, { useState } from "react";
-import { searchUsers } from "../services/githubService";
+import React, { useState } from 'react';
+import { fetchUserData } from '../services/githubService'; // Correct import
 
-function Search() {
-  const [query, setQuery] = useState("");
-  const [location, setLocation] = useState(""); //
-  const [minRepos, setMinRepos] = useState(0);
-  const [results, setResults] = useState([]);
+const Search = () => {
+  const [username, setUsername] = useState('');
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setResults([]);
-    setError("");
+    
+    if (!username.trim()) return;
+    
     setLoading(true);
-
+    setError(null);
+    setUserData(null);
+    
     try {
-      const users = await searchUsers({ query, location, minRepos });
-      if (users.length === 0) {
-        setError("Looks like we cant find the user");
-      } else {
-        setResults(users);
-      }
+      // Use fetchUserData function from githubService
+      const data = await fetchUserData(username); // This is the correct usage
+      setUserData(data);
     } catch (err) {
-      setError("Looks like we cant find the user");
+      setError('Looks like we cant find the user');
+      console.error('Error fetching user data:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="search-container p-4 max-w-xl mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="search-container">
+      <h1>GitHub User Search</h1>
+      
+      <form onSubmit={handleSubmit} className="search-form">
         <input
           type="text"
-          placeholder="Search GitHub username..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
-          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter GitHub username"
+          className="search-input"
+          disabled={loading}
         />
-
-        {/* ✅ Location input */}
-        <input
-          type="text"
-          placeholder="Filter by location (e.g. South Africa)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
-        />
-
-        {/* Optional: Minimum Repos input */}
-        <input
-          type="number"
-          placeholder="Minimum number of public repos"
-          value={minRepos}
-          onChange={(e) => setMinRepos(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
-          min={0}
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+        <button 
+          type="submit" 
+          className="search-button"
+          disabled={loading}
         >
-          Search
+          {loading ? 'Searching...' : 'Search'}
         </button>
       </form>
 
-      <div className="result-container mt-6">
-        {loading && <p>Loading...</p>}
-        {error && <p className="text-red-600">{error}</p>}
+      <div className="results-container">
+        {loading && (
+          <div className="loading-message">
+            Loading...
+          </div>
+        )}
 
-        {results.length > 0 && (
-          <div className="grid gap-4 mt-4">
-            {results.map((user) => (
-              <div
-                key={user.id}
-                className="border rounded p-4 flex items-center space-x-4"
-              >
-                <img
-                  src={user.avatar_url}
-                  alt={`${user.login} avatar`}
-                  className="w-16 h-16 rounded-full"
-                />
-                <div>
-                  <h2 className="text-lg font-semibold">{user.login}</h2>
-                  <a
-                    href={user.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 underline"
-                  >
-                    View Profile
-                  </a>
-                </div>
-              </div>
-            ))}
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {userData && !loading && !error && (
+          <div className="user-card">
+            <img 
+              src={userData.avatar_url} 
+              alt={`${userData.login}'s avatar`}
+              width="150"
+              height="150"
+            />
+            <h2>{userData.name || userData.login}</h2>
+            <a 
+              href={userData.html_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              View GitHub Profile
+            </a>
           </div>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default Search;
