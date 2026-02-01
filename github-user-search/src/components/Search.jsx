@@ -1,28 +1,37 @@
 import React, { useState } from 'react';
-import { fetchUserData } from '../services/githubService'; // Correct import
+import { searchUsers, getUserDetails } from '../services/githubService';
 
 const Search = () => {
-  const [username, setUsername] = useState('');
-  const [userData, setUserData] = useState(null);
+  const [query, setQuery] = useState('');
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!username.trim()) return;
+    if (!query.trim()) return;
     
     setLoading(true);
     setError(null);
-    setUserData(null);
+    setUsers([]);
     
     try {
-      // Use fetchUserData function from githubService
-      const data = await fetchUserData(username); // This is the correct usage
-      setUserData(data);
+      // Search for multiple users
+      const userList = await searchUsers(query);
+      
+      // Get detailed info for each user
+      const detailedUsers = await Promise.all(
+        userList.slice(0, 10).map(async (user) => {
+          const details = await getUserDetails(user.login);
+          return details;
+        })
+      );
+      
+      setUsers(detailedUsers);
     } catch (err) {
-      setError('Looks like we cant find the user');
-      console.error('Error fetching user data:', err);
+      setError('Looks like we cant find any users');
+      console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
     }
@@ -35,52 +44,31 @@ const Search = () => {
       <form onSubmit={handleSubmit} className="search-form">
         <input
           type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter GitHub username"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search GitHub users..."
           className="search-input"
           disabled={loading}
         />
-        <button 
-          type="submit" 
-          className="search-button"
-          disabled={loading}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? 'Searching...' : 'Search'}
         </button>
       </form>
 
-      <div className="results-container">
-        {loading && (
-          <div className="loading-message">
-            Loading...
-          </div>
-        )}
-
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
-          </div>
-        )}
-
-        {userData && !loading && !error && (
-          <div className="user-card">
-            <img 
-              src={userData.avatar_url} 
-              alt={`${userData.login}'s avatar`}
-              width="150"
-              height="150"
-            />
-            <h2>{userData.name || userData.login}</h2>
-            <a 
-              href={userData.html_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              View GitHub Profile
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
+      
+      {/* Using map to display multiple users */}
+      <div className="users-grid">
+        {users.map((user) => (
+          <div key={user.id} className="user-card">
+            <img src={user.avatar_url} alt={user.login} />
+            <h3>{user.login}</h3>
+            <a href={user.html_url} target="_blank" rel="noopener noreferrer">
+              View Profile
             </a>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
