@@ -1,12 +1,13 @@
-import Search from './components/Search';
-import ErrorBoundary from './components/ErrorBoundary';
-import './App.css';
+// src/App.jsx
+import React from "react";
+import SearchBar from "./components/Search";
 
 function App() {
   return (
-    <ErrorBoundary>
-      <Search />
-    </ErrorBoundary>
+    <div className="app-container">
+      <h1>GitHub User Search</h1>
+      <SearchBar />
+    </div>
   );
 }
 
