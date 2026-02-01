@@ -1,37 +1,27 @@
 import React, { useState } from 'react';
-import { searchUsers, getUserDetails } from '../services/githubService';
+import { fetchUserData } from '../services/githubService';
 
 const Search = () => {
-  const [query, setQuery] = useState('');
-  const [users, setUsers] = useState([]);
+  const [username, setUsername] = useState('');
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!query.trim()) return;
+    if (!username.trim()) return;
     
     setLoading(true);
     setError(null);
-    setUsers([]);
+    setUserData(null);
     
     try {
-      // Search for multiple users
-      const userList = await searchUsers(query);
-      
-      // Get detailed info for each user
-      const detailedUsers = await Promise.all(
-        userList.slice(0, 10).map(async (user) => {
-          const details = await getUserDetails(user.login);
-          return details;
-        })
-      );
-      
-      setUsers(detailedUsers);
+      const data = await fetchUserData(username);
+      setUserData(data);
     } catch (err) {
-      setError('Looks like we cant find any users');
-      console.error('Error fetching users:', err);
+      setError('Looks like we cant find the user');
+      console.error('Error fetching user data:', err);
     } finally {
       setLoading(false);
     }
@@ -44,31 +34,110 @@ const Search = () => {
       <form onSubmit={handleSubmit} className="search-form">
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search GitHub users..."
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter GitHub username"
           className="search-input"
           disabled={loading}
         />
-        <button type="submit" disabled={loading}>
+        <button 
+          type="submit" 
+          className="search-button"
+          disabled={loading}
+        >
           {loading ? 'Searching...' : 'Search'}
         </button>
       </form>
 
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-      
-      {/* Using map to display multiple users */}
-      <div className="users-grid">
-        {users.map((user) => (
-          <div key={user.id} className="user-card">
-            <img src={user.avatar_url} alt={user.login} />
-            <h3>{user.login}</h3>
-            <a href={user.html_url} target="_blank" rel="noopener noreferrer">
-              View Profile
-            </a>
+      <div className="results-container">
+        {loading && (
+          <div className="loading-message">
+            Loading...
           </div>
-        ))}
+        )}
+
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {userData && !loading && !error && (
+          <div className="user-card">
+            <div className="user-avatar">
+              <img 
+                src={userData.avatar_url} 
+                alt={`${userData.login}'s avatar`}
+                width="150"
+                height="150"
+              />
+            </div>
+            
+            <div className="user-info">
+              <h2>{userData.name || userData.login}</h2>
+              
+              {userData.bio && (
+                <p className="user-bio">{userData.bio}</p>
+              )}
+              
+              {/* Display user location */}
+              {userData.location && (
+                <p className="user-location">
+                  <strong>📍 Location:</strong> {userData.location}
+                </p>
+              )}
+              
+              <div className="user-stats">
+                <div className="stat">
+                  <strong>Followers:</strong> {userData.followers}
+                </div>
+                <div className="stat">
+                  <strong>Following:</strong> {userData.following}
+                </div>
+                <div className="stat">
+                  <strong>Public Repos:</strong> {userData.public_repos}
+                </div>
+              </div>
+              
+              <div className="user-links">
+                <a 
+                  href={userData.html_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="profile-link"
+                >
+                  View GitHub Profile
+                </a>
+                
+                {userData.blog && (
+                  <a 
+                    href={userData.blog.startsWith('http') ? userData.blog : `https://${userData.blog}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="blog-link"
+                  >
+                    Personal Website
+                  </a>
+                )}
+              </div>
+              
+              {/* Additional user info using map for demonstration */}
+              <div className="additional-info">
+                {[
+                  { label: 'Company', value: userData.company },
+                  { label: 'Twitter', value: userData.twitter_username },
+                  { label: 'Created', value: new Date(userData.created_at).toLocaleDateString() }
+                ].map((info, index) => (
+                  info.value && (
+                    <p key={index} className="info-item">
+                      <strong>{info.label}:</strong> {info.value}
+                    </p>
+                  )
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
