@@ -20,6 +20,7 @@ const Search = () => {
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [searchType, setSearchType] = useState('basic'); // 'basic' or 'advanced'
+  const [singleUser, setSingleUser] = useState(null); // For single user search
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,14 +32,53 @@ const Search = () => {
     if (error) setError('');
   };
 
+  // fetchUserData function for single user search
+  const fetchUserData = async (username) => {
+    if (!username || !username.trim()) {
+      setError('Please enter a GitHub username');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSingleUser(null);
+    setUsers([]);
+    setTotalCount(0);
+
+    try {
+      const result = await githubService.fetchUserData(username);
+      
+      if (result.success) {
+        setSingleUser(result.data);
+        setError('');
+      } else {
+        setError(result.error || 'Looks like we cant find the user');
+        setSingleUser(null);
+      }
+    } catch (err) {
+      setError('Failed to fetch user data. Please try again.');
+      setSingleUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const buildQuery = () => {
     return githubService.buildSearchQuery(searchData);
   };
 
   const handleSearch = async (e, newPage = 1) => {
     e?.preventDefault();
+    
+    if (searchType === 'basic' && searchData.username && !searchData.location && !searchData.minRepos && !searchData.language && !searchData.followers) {
+      // For basic username search, use fetchUserData
+      fetchUserData(searchData.username);
+      return;
+    }
+    
     setLoading(true);
     setError('');
+    setSingleUser(null);
     
     try {
       let result;
@@ -65,13 +105,16 @@ const Search = () => {
         setTotalCount(result.data.total_count || 0);
         setHasMore((result.data.items?.length || 0) === 30); // GitHub returns max 30 per page
         setPage(newPage);
+        setSingleUser(null);
       } else {
         setError(result.error || 'An error occurred while searching');
         setUsers([]);
+        setSingleUser(null);
       }
     } catch (err) {
       setError('Failed to fetch users. Please try again.');
       setUsers([]);
+      setSingleUser(null);
     } finally {
       setLoading(false);
     }
@@ -92,6 +135,7 @@ const Search = () => {
       order: 'desc'
     });
     setUsers([]);
+    setSingleUser(null);
     setError('');
     setPage(1);
     setHasMore(false);
@@ -124,7 +168,7 @@ const Search = () => {
     }, 100);
   };
 
-  // Function to render user cards using map
+  // Function to render user cards using map for multiple users
   const renderUserCards = () => {
     if (users.length === 0) return null;
     
@@ -193,6 +237,129 @@ const Search = () => {
         </div>
       </div>
     ));
+  };
+
+  // Function to render single user details
+  const renderSingleUser = () => {
+    if (!singleUser) return null;
+    
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-6">
+          <div className="flex-shrink-0">
+            <img
+              src={singleUser.avatar_url}
+              alt={`${singleUser.login}'s avatar`}
+              className="w-32 h-32 rounded-full border-4 border-blue-100"
+            />
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {singleUser.name || singleUser.login}
+                </h2>
+                <p className="text-gray-600 text-lg">@{singleUser.login}</p>
+                {singleUser.bio && (
+                  <p className="mt-3 text-gray-700">{singleUser.bio}</p>
+                )}
+              </div>
+              
+              <a
+                href={singleUser.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 md:mt-0 inline-flex items-center justify-center bg-gray-900 text-white py-2 px-6 rounded-lg font-medium hover:bg-gray-800 transition-all"
+              >
+                <LinkIcon className="w-4 h-4 mr-2" />
+                View GitHub Profile
+              </a>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {singleUser.public_repos?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Repositories</div>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {singleUser.followers?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Followers</div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {singleUser.following?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Following</div>
+              </div>
+              
+              <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {singleUser.public_gists?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Gists</div>
+              </div>
+            </div>
+            
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {singleUser.location && (
+                <div className="flex items-center text-gray-700">
+                  <MapPin className="w-5 h-5 mr-2 text-gray-500" />
+                  <span>{singleUser.location}</span>
+                </div>
+              )}
+              
+              {singleUser.company && (
+                <div className="flex items-center text-gray-700">
+                  <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>{singleUser.company}</span>
+                </div>
+              )}
+              
+              {singleUser.blog && (
+                <div className="flex items-center text-gray-700">
+                  <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <a href={singleUser.blog} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    {singleUser.blog}
+                  </a>
+                </div>
+              )}
+              
+              {singleUser.twitter_username && (
+                <div className="flex items-center text-gray-700">
+                  <svg className="w-5 h-5 mr-2 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                  <a href={`https://twitter.com/${singleUser.twitter_username}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    @{singleUser.twitter_username}
+                  </a>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                Joined GitHub on {new Date(singleUser.created_at).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Function to render popular search buttons using map
@@ -456,8 +623,18 @@ const Search = () => {
           </div>
         )}
 
-        {/* Results Header */}
-        {(users.length > 0 || loading) && (
+        {/* Loading State */}
+        {loading && page === 1 && !singleUser && (
+          <div className="flex justify-center items-center py-20">
+            <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
+          </div>
+        )}
+
+        {/* Single User Result */}
+        {singleUser && renderSingleUser()}
+
+        {/* Results Header for multiple users */}
+        {(users.length > 0 || (loading && page > 1)) && !singleUser && (
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
@@ -477,22 +654,15 @@ const Search = () => {
           </div>
         )}
 
-        {/* Loading State */}
-        {loading && page === 1 && (
-          <div className="flex justify-center items-center py-20">
-            <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
-          </div>
-        )}
-
-        {/* Results Grid - Using map function */}
-        {!loading && users.length > 0 && (
+        {/* Results Grid - Using map function for multiple users */}
+        {!loading && users.length > 0 && !singleUser && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {renderUserCards()}
           </div>
         )}
 
         {/* No Results */}
-        {!loading && users.length === 0 && totalCount === 0 && !error && (
+        {!loading && users.length === 0 && totalCount === 0 && !error && !singleUser && (
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
               <SearchIcon className="w-10 h-10 text-gray-400" />
@@ -507,7 +677,7 @@ const Search = () => {
         )}
 
         {/* Load More Button */}
-        {hasMore && !loading && (
+        {hasMore && !loading && !singleUser && (
           <div className="text-center mb-12">
             <button
               onClick={handleLoadMore}
@@ -520,7 +690,7 @@ const Search = () => {
         )}
 
         {/* Loading More State */}
-        {loading && page > 1 && (
+        {loading && page > 1 && !singleUser && (
           <div className="text-center py-8">
             <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-8 w-8 inline-block mr-3"></div>
             <span className="text-gray-600">Loading more users...</span>
@@ -528,7 +698,7 @@ const Search = () => {
         )}
 
         {/* Footer Stats */}
-        {users.length > 0 && (
+        {users.length > 0 && !singleUser && (
           <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
