@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchAdvancedUserData } from "../services/githubService";
+import { fetchUserData, fetchAdvancedUserData } from "../services/githubService";
 
 function Search() {
   const [username, setUsername] = useState("");
@@ -16,8 +16,19 @@ function Search() {
     setUsers([]);
 
     try {
-      const data = await fetchAdvancedUserData({ username, location, minRepos });
-      setUsers(data.items); // array of users
+      if (username && !location && !minRepos) {
+        // Basic search (Task 1 requirement)
+        const user = await fetchUserData(username);
+        setUsers([user]); // wrap in array for map()
+      } else {
+        // Advanced search (Task 2 requirement)
+        const data = await fetchAdvancedUserData({
+          username,
+          location,
+          minRepos,
+        });
+        setUsers(data.items);
+      }
     } catch (err) {
       setError(true);
     } finally {
@@ -57,19 +68,31 @@ function Search() {
         </button>
       </form>
 
-      {loading && <p className="mt-4 text-gray-500">Loading...</p>}
-      {error && <p className="mt-4 text-red-500">Looks like we cant find the user</p>}
+      {loading && <p className="mt-4">Loading...</p>}
+      {error && <p className="mt-4">Looks like we cant find the user</p>}
 
       <div className="mt-4 grid gap-4">
         {users.map((user) => (
-          <div key={user.id} className="border p-4 rounded flex items-center gap-4">
-            <img src={user.avatar_url} alt={user.login} className="w-16 h-16 rounded-full" />
+          <div
+            key={user.id}
+            className="border p-4 rounded flex items-center gap-4"
+          >
+            <img
+              src={user.avatar_url}
+              alt={user.login}
+              className="w-16 h-16 rounded-full"
+            />
             <div>
               <h3 className="font-bold">{user.login}</h3>
               <p>Location: {user.location || "Unknown"}</p>
               <p>Repositories: {user.public_repos}</p>
-              <a href={user.html_url} target="_blank" rel="noreferrer" className="text-blue-500">
-                View Profile
+              <a
+                href={user.html_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-500"
+              >
+                View GitHub Profile
               </a>
             </div>
           </div>
