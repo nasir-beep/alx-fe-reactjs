@@ -1,13 +1,35 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import recipesData from "../data.json";
 
 function RecipeDetail() {
-  const { id } = useParams();
+  const { id } = useParams(); // Get the recipe ID from the URL
+  const [recipe, setRecipe] = useState(null); // State to store the recipe
+  const [loading, setLoading] = useState(true); // State for loading
 
-  const recipe = recipesData.find(
-    (item) => item.id === parseInt(id)
-  );
+  useEffect(() => {
+    // Mimic fetching data
+    const fetchRecipe = () => {
+      const foundRecipe = recipesData.find(
+        (item) => item.id === parseInt(id)
+      );
+      setRecipe(foundRecipe);
+      setLoading(false);
+    };
 
+    fetchRecipe();
+  }, [id]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-medium">Loading recipe...</p>
+      </div>
+    );
+  }
+
+  // Recipe not found
   if (!recipe) {
     return (
       <div className="p-6">
@@ -23,7 +45,7 @@ function RecipeDetail() {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
 
-        {/* Image */}
+        {/* Recipe Image */}
         <img
           src={recipe.image}
           alt={recipe.title}
@@ -31,16 +53,12 @@ function RecipeDetail() {
         />
 
         <div className="p-6">
-          {/* Title */}
-          <h1 className="text-3xl font-bold mb-4">
-            {recipe.title}
-          </h1>
+          {/* Recipe Title */}
+          <h1 className="text-3xl font-bold mb-4">{recipe.title}</h1>
 
           {/* Ingredients */}
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-3">
-              Ingredients
-            </h2>
+            <h2 className="text-2xl font-semibold mb-3">Ingredients</h2>
             <ul className="list-disc list-inside space-y-2 text-gray-700">
               {recipe.ingredients.map((ingredient, index) => (
                 <li key={index}>{ingredient}</li>
@@ -48,11 +66,9 @@ function RecipeDetail() {
             </ul>
           </div>
 
-          {/* Instructions */}
+          {/* Cooking Instructions */}
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-3">
-              Cooking Instructions
-            </h2>
+            <h2 className="text-2xl font-semibold mb-3">Cooking Instructions</h2>
             <ol className="list-decimal list-inside space-y-2 text-gray-700">
               {recipe.instructions.map((step, index) => (
                 <li key={index}>{step}</li>
