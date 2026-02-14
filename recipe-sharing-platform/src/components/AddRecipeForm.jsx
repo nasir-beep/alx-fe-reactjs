@@ -25,7 +25,6 @@ function AddRecipeForm() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      // Normally, submit to backend or state
       console.log("New Recipe Submitted:", { title, ingredients, instructions });
       alert("Recipe submitted successfully!");
 
@@ -37,9 +36,9 @@ function AddRecipeForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Add a New Recipe 🍲</h2>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 md:p-6">
+      <div className="w-full md:max-w-2xl bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Add a New Recipe 🍲</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Recipe Title */}
@@ -49,7 +48,7 @@ function AddRecipeForm() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full p-3 md:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.title ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="E.g., Spaghetti Carbonara"
@@ -66,7 +65,7 @@ function AddRecipeForm() {
               value={ingredients}
               onChange={(e) => setIngredients(e.target.value)}
               rows={3}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full p-3 md:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.ingredients ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="E.g., 200g spaghetti, 2 eggs, 100g bacon"
@@ -83,7 +82,7 @@ function AddRecipeForm() {
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
               rows={5}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full p-3 md:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.instructions ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Describe the cooking steps..."
@@ -94,15 +93,18 @@ function AddRecipeForm() {
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <button
               type="submit"
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition"
+              className="w-full md:w-auto bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition"
             >
               Submit Recipe
             </button>
 
-            <Link to="/" className="text-blue-500 hover:underline font-medium">
+            <Link
+              to="/"
+              className="w-full md:w-auto text-blue-500 hover:underline font-medium text-center"
+            >
               ← Back to Home
             </Link>
           </div>
