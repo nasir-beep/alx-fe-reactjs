@@ -2,27 +2,30 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 function AddRecipeForm() {
-  // Form state
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
   const [errors, setErrors] = useState({});
 
-  // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Simple validation
+  // Separate validate function
+  const validate = () => {
     const newErrors = {};
     if (!title.trim()) newErrors.title = "Title is required";
     if (!ingredients.trim() || ingredients.split(",").length < 2)
       newErrors.ingredients = "Enter at least 2 ingredients, separated by commas";
     if (!instructions.trim()) newErrors.instructions = "Instructions are required";
 
-    setErrors(newErrors);
+    return newErrors;
+  };
 
-    if (Object.keys(newErrors).length === 0) {
-      // Normally you would send data to backend/API here
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const validationErrors = validate();
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      // Normally, submit to backend or state
       console.log("New Recipe Submitted:", { title, ingredients, instructions });
       alert("Recipe submitted successfully!");
 
@@ -39,7 +42,7 @@ function AddRecipeForm() {
         <h2 className="text-2xl font-bold mb-6 text-center">Add a New Recipe 🍲</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Title */}
+          {/* Recipe Title */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">Recipe Title</label>
             <input
@@ -99,10 +102,7 @@ function AddRecipeForm() {
               Submit Recipe
             </button>
 
-            <Link
-              to="/"
-              className="text-blue-500 hover:underline font-medium"
-            >
+            <Link to="/" className="text-blue-500 hover:underline font-medium">
               ← Back to Home
             </Link>
           </div>
