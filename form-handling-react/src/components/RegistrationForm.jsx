@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 function RegistrationForm() {
+  const [username, setUsername] = useState("");   // ✅ required
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -9,6 +10,10 @@ function RegistrationForm() {
     e.preventDefault();
 
     const newErrors = {};
+
+    if (!username) {
+      newErrors.username = "Username is required";
+    }
 
     if (!email) {
       newErrors.email = "Email is required";
@@ -27,6 +32,18 @@ function RegistrationForm() {
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Username */}
+      <div>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}              {/* ✅ required */}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        {errors.username && <p>{errors.username}</p>}
+      </div>
+
+      {/* Email */}
       <div>
         <input
           type="email"
@@ -37,6 +54,7 @@ function RegistrationForm() {
         {errors.email && <p>{errors.email}</p>}
       </div>
 
+      {/* Password */}
       <div>
         <input
           type="password"
