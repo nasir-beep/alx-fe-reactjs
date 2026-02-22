@@ -1,14 +1,25 @@
-import { Routes, Route } from "react-router-dom"
-import Home from "./pages/Home"
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import RegistrationForm from "./components/RegistrationForm";
+import PostsComponent from "./components/PostsComponent";
+import BlogPost from "./components/BlogPost"; // ✅ BlogPost import
+
+// Create QueryClient instance
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <BrowserRouter>
-    	<Routes>
-      	    <Route path="/" element={<Home />} />
-    	</Routes>
-    <BrowserRouter>
-  )
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<RegistrationForm />} />
+          <Route path="/posts" element={<PostsComponent />} />
+          <Route path="/blog/:id" element={<BlogPost />} /> {/* ✅ /blog/:id route */}
+        </Routes>
+      </Router>
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;
