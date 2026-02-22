@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import RegistrationForm from './components/RegistrationForm';
+import FormikForm from './components/FormikForm';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [showFormik, setShowFormik] = useState(false);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="App">
+      <header style={headerStyle}>
+        <h1>Form Handling in React</h1>
+        <button 
+          onClick={() => setShowFormik(!showFormik)}
+          style={toggleButtonStyle}
+        >
+          Switch to {showFormik ? 'Controlled Components' : 'Formik'} Form
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </header>
+      
+      <main>
+        {showFormik ? <FormikForm /> : <RegistrationForm />}
+      </main>
+    </div>
+  );
 }
 
-export default App
+const headerStyle = {
+  textAlign: 'center',
+  padding: '20px',
+  backgroundColor: '#f8f9fa',
+  borderBottom: '1px solid #dee2e6'
+};
+
+const toggleButtonStyle = {
+  padding: '10px 20px',
+  fontSize: '16px',
+  backgroundColor: '#6c757d',
+  color: 'white',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  marginTop: '10px'
+};
+
+export default App;
